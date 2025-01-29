@@ -28,4 +28,4 @@ jobs:
           script: |
             cd /root/project/sierra/MadProject
             pkill -f "php artisan serve" || true
-            (php artisan serve --host=0.0.0.0 --port=8000 > /dev/null 2>&1 &)
+            (php artisan serve --host=0.0.0.0 --port=8000 -v > /dev/null 2>&1 &)
