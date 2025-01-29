@@ -142,7 +142,7 @@
                 <a href="{{ route('product.details', ['id' => $product->id]) }}" class="transition-transform bg-white border border-gray-300 rounded-lg shadow-md hover:shadow-2xl hover:scale-105">
                     <!-- Image Section -->
                     <div class="relative w-full h-56 overflow-hidden rounded-t-lg">
-                        <img src="{{ asset('../storage/' . $product->images[0]) }}" alt="{{ $product->name }}" class="object-cover w-full h-full transition-transform duration-300 hover:scale-110">
+                        <img src="{{ asset('../../storage/' . $product->images[0]) }}" alt="{{ $product->name }}" class="object-cover w-full h-full transition-transform duration-300 hover:scale-110">
                         <!-- Category Badge -->
                         <span class="absolute px-3 py-1 text-xs font-semibold text-white rounded-full top-2 left-2 bg-gradient-to-r from-blue-500 to-teal-400">
                             {{ $product->category }}
