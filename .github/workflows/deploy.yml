@@ -9,14 +9,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy Code
+      - name: Pull Code
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /root/project/sierra/MadProject
-            git pull origin main
-            pkill -f "php artisan serve" || true
-            exit 0
+          script: cd /root/project/sierra/MadProject && git pull origin main
