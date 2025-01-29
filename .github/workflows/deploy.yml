@@ -1,4 +1,4 @@
-name: Deploy Laravel Application
+name: Deploy Laravel
 
 on:
   push:
@@ -8,9 +8,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Deploy to Digital Ocean
+      - name: Deploy to server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -18,56 +17,10 @@ jobs:
           password: ${{ secrets.DEPLOY_PASSWORD }}
           script: |
             cd /root/project/sierra/MadProject
-            
-            # Pull latest changes
             git pull origin main
-            
-            # Setup server management script
-            cat > manage-server.sh << 'EOF'
-            #!/bin/bash
-            
-            # Kill existing server
-            pkill -f "php artisan serve" || true
-            
-            # Start server
-            nohup php artisan serve --host=0.0.0.0 --port=8000 > storage/logs/server.log 2>&1 &
-            
-            # Save PID
-            echo $! > storage/logs/server.pid
-            EOF
-            
-            chmod +x manage-server.sh
-            
-            # Install dependencies
-            export COMPOSER_ALLOW_SUPERUSER=1
-            composer install --no-interaction --prefer-dist --optimize-autoloader --ignore-platform-reqs
-            
-            # Install Node dependencies and build assets
+            composer install --no-interaction --no-dev --optimize-autoloader
             npm install
             npm run build
-            
-            # Update permissions
-            chmod -R 775 storage bootstrap/cache
-            
-            # Clear and cache config
-            php artisan config:clear
-            php artisan cache:clear
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-            
-            # Run migrations
             php artisan migrate --force
-            
-            # Run server management script
-            ./manage-server.sh
-            
-            # Verify server is running
-            sleep 5
-            if pgrep -f "php artisan serve" > /dev/null; then
-              echo "Server started successfully"
-              exit 0
-            else
-              echo "Server failed to start"
-              exit 1
-            fi
+            pkill -f "php artisan serve" || true
+            nohup php artisan serve --host=0.0.0.0 --port=8000 > storage/logs/server.log 2>&1 &
