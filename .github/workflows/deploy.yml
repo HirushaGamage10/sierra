@@ -18,9 +18,9 @@ jobs:
           script: |
             cd /root/project/sierra/MadProject
             git pull origin main
-            
-            # Kill any existing Laravel process
+            composer install --no-interaction --no-dev --optimize-autoloader
+            npm install
+            npm run build
+            php artisan migrate --force
             pkill -f "php artisan serve" || true
-            
-            # Start Laravel server with verbose output
-            nohup php artisan serve --host=0.0.0.0 --port=8000 -v > storage/logs/server.log 2>&1 &
+            nohup php artisan serve --host=0.0.0.0 --port=8000 > storage/logs/server.log 2>&1 &
