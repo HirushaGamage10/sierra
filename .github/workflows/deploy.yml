@@ -19,5 +19,4 @@ jobs:
             cd /root/project/sierra/MadProject
             git pull origin main
             pkill -f "php artisan serve" || true
-            nohup php artisan serve --host=0.0.0.0 --port=8000 </dev/null >>nohup.out 2>&1 &
-            disown -h $!
+            echo "cd /root/project/sierra/MadProject && php artisan serve --host=0.0.0.0 --port=8000" | at now
