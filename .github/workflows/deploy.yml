@@ -17,26 +17,10 @@ jobs:
           password: ${{ secrets.DEPLOY_PASSWORD }}
           script: |
             cd /root/project/sierra/MadProject
-
-            # Upgrade MongoDB PHP Extension
-            sudo apt update
-            sudo apt install -y php-mongodb
-
-            # Fix Composer Dependencies
-            composer update --no-interaction
-            composer install --no-interaction --prefer-dist --optimize-autoloader
-
-            # Run Migrations and Cache Clear
-            php artisan migrate --force
-            php artisan config:clear
-            php artisan cache:clear
-            php artisan route:cache
-            php artisan view:cache
-
-            # Kill Existing Laravel Process Safely
+            git pull origin main
+            
+            # Kill any existing Laravel process
             pkill -f "php artisan serve" || true
             
-            # Run Laravel in the Background
-            nohup php artisan serve --host=0.0.0.0 --port=8000 > storage/logs/server.log 2>&1 &
-
-            echo "Deployment completed successfully!"
+            # Start Laravel server with verbose output
+            nohup php artisan serve --host=0.0.0.0 --port=8000 -v > storage/logs/server.log 2>&1 &
