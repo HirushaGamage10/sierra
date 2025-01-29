@@ -1,4 +1,4 @@
-name: Deploy Laravel to DigitalOcean
+name: Deploy Laravel Application
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy to production
+      - name: Deploy to Digital Ocean
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -18,30 +18,45 @@ jobs:
           password: ${{ secrets.DEPLOY_PASSWORD }}
           script: |
             cd /root/project/sierra/MadProject
+            
+            # Pull latest changes
             git pull origin main
             
-            # Install MongoDB extension
+            # Install MongoDB extension if not already installed
             sudo apt-get update
             sudo apt-get install -y php-mongodb
             
-            # Install dependencies with Composer
+            # Copy .env file if it doesn't exist
+            if [ ! -f .env ]; then
+              cp .env.example .env
+              php artisan key:generate
+            fi
+            
+            # Install PHP dependencies
             export COMPOSER_ALLOW_SUPERUSER=1
             composer install --no-interaction --prefer-dist --optimize-autoloader --ignore-platform-reqs
             
-            # Cache configuration
+            # Install Node dependencies and build assets
+            npm install
+            npm run build
+            
+            # Update permissions
+            chmod -R 775 storage bootstrap/cache
+            
+            # Clear and cache config
+            php artisan config:clear
+            php artisan cache:clear
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
             
-            # Install and build frontend assets
-            npm install
-            npm run build
-            
             # Run migrations
             php artisan migrate --force
             
-            # Restart PHP to load new MongoDB extension
-            sudo systemctl restart php8.3-fpm || true
+            # Restart Laravel server
+            pkill -f "php artisan serve" || true
+            nohup php artisan serve --host=0.0.0.0 --port=8000 > storage/logs/server.log 2>&1 &
             
-            # Clear application cache
-            php artisan cache:clear
+            # Wait and check if server is running
+            sleep 5
+            ps aux | grep "[p]hp artisan serve"
