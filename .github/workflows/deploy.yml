@@ -14,7 +14,7 @@ jobs:
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_KEY }}  # Use SSH key authentication
+          password: ${{ secrets.DEPLOY_PASSWORD }}
           script: |
             cd /root/project/sierra/MadProject
             git pull origin main
@@ -28,7 +28,7 @@ jobs:
             # Stop the old process safely
             pkill -f "php artisan serve" || true
             
-            # Restart the Laravel server in the background
+            # Restart Laravel server in the background
             nohup php artisan serve --host=0.0.0.0 --port=8000 > storage/logs/server.log 2>&1 &
 
             echo "Deployment completed successfully!"
