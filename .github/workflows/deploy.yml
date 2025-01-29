@@ -1,4 +1,4 @@
-name: Deploy Laravel to DigitalOcean
+name: Deploy Laravel
 
 on:
   push:
@@ -8,9 +8,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Deploy to production
+      - name: Deploy to server
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -19,11 +18,11 @@ jobs:
           script: |
             cd /root/project/sierra/MadProject
             git pull origin main
-            composer install --no-interaction --prefer-dist --optimize-autoloader
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
+            composer install --no-interaction --no-dev --optimize-autoloader
             npm install
             npm run build
             php artisan migrate --force
-            sudo systemctl reload nginx
+            pkill -f "php artisan serve" || true
+            nohup php artisan serve --host=0.0.0.0 --port=8000 > storage/logs/server.log 2>&1 &
+
+# test
