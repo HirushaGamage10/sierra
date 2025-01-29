@@ -22,17 +22,23 @@ jobs:
             # Pull latest changes
             git pull origin main
             
-            # Install MongoDB extension if not already installed
-            sudo apt-get update
-            sudo apt-get install -y php-mongodb
+            # Setup server management script
+            cat > manage-server.sh << 'EOF'
+            #!/bin/bash
             
-            # Copy .env file if it doesn't exist
-            if [ ! -f .env ]; then
-              cp .env.example .env
-              php artisan key:generate
-            fi
+            # Kill existing server
+            pkill -f "php artisan serve" || true
             
-            # Install PHP dependencies
+            # Start server
+            nohup php artisan serve --host=0.0.0.0 --port=8000 > storage/logs/server.log 2>&1 &
+            
+            # Save PID
+            echo $! > storage/logs/server.pid
+            EOF
+            
+            chmod +x manage-server.sh
+            
+            # Install dependencies
             export COMPOSER_ALLOW_SUPERUSER=1
             composer install --no-interaction --prefer-dist --optimize-autoloader --ignore-platform-reqs
             
@@ -53,10 +59,15 @@ jobs:
             # Run migrations
             php artisan migrate --force
             
-            # Restart Laravel server
-            pkill -f "php artisan serve" || true
-            nohup php artisan serve --host=0.0.0.0 --port=8000 > storage/logs/server.log 2>&1 &
+            # Run server management script
+            ./manage-server.sh
             
-            # Wait and check if server is running
+            # Verify server is running
             sleep 5
-            ps aux | grep "[p]hp artisan serve"
+            if pgrep -f "php artisan serve" > /dev/null; then
+              echo "Server started successfully"
+              exit 0
+            else
+              echo "Server failed to start"
+              exit 1
+            fi
