@@ -9,7 +9,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Pull Latest Code
+      - name: Deploy and Start
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -18,14 +18,18 @@ jobs:
           script: |
             cd /root/project/sierra/MadProject
             git pull origin main
-
-      - name: Start Server
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
+            
+            # Create startup script if it doesn't exist
+            cat > start-server.sh << 'EOF'
+            #!/bin/bash
             cd /root/project/sierra/MadProject
             pkill -f "php artisan serve" || true
-            (php artisan serve --host=0.0.0.0 --port=8000 -v > /dev/null 2>&1 &)
+            nohup php artisan serve --host=0.0.0.0 --port=8000 > server.log 2>&1 &
+            EOF
+            
+            # Make it executable
+            chmod +x start-server.sh
+            
+            # Run it
+            bash start-server.sh
+            exit 0
