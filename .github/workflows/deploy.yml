@@ -8,11 +8,15 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: project/sierra/MadProject
     
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          path: project/sierra/MadProject
       
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -21,6 +25,11 @@ jobs:
           extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, mongodb
           coverage: none
         
+      - name: Verify Path
+        run: |
+          pwd
+          ls -la
+          
       - name: Copy .env
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
         
