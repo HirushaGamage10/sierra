@@ -46,7 +46,7 @@ jobs:
           script: |
             cd /root/project/sierra/MadProject
             git pull origin main
-            # composer install --no-interaction --prefer-dist --optimize-autoloader --ignore-platform-reqs
+            composer install --no-interaction --prefer-dist --optimize-autoloader --ignore-platform-reqs
             
             # Clear all caches
             php artisan optimize:clear
@@ -66,6 +66,5 @@ jobs:
             find . -type d -exec chmod 755 {} \;
             chmod -R 777 storage bootstrap/cache
             
-            # Restart services if needed
+            # Restart PHP-FPM
             sudo systemctl restart php8.2-fpm
-            sudo systemctl restart nginx
