@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          path: project/sierra/MadProject
+          fetch-depth: 0
       
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -22,19 +22,15 @@ jobs:
           coverage: none
         
       - name: Copy .env
-        working-directory: ./project/sierra/MadProject
         run: php -r "file_exists('.env') || copy('.env.example', '.env');"
         
       - name: Install Dependencies
-        working-directory: ./project/sierra/MadProject
         run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --ignore-platform-reqs
         
       - name: Generate key
-        working-directory: ./project/sierra/MadProject
         run: php artisan key:generate
         
       - name: Directory Permissions
-        working-directory: ./project/sierra/MadProject
         run: chmod -R 777 storage bootstrap/cache
         
       - name: Deploy to Server
@@ -45,14 +41,18 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           script: |
-            cd ~/project/sierra/MadProject
+            cd /root/project/sierra/MadProject
             git pull origin main
             composer install --no-interaction --prefer-dist --optimize-autoloader --ignore-platform-reqs
+            
+            # Clear all caches
             php artisan optimize:clear
             php artisan config:clear
             php artisan cache:clear
             php artisan view:clear
             php artisan route:clear
+            
+            # Recreate caches
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
@@ -62,3 +62,7 @@ jobs:
             find . -type f -exec chmod 644 {} \;
             find . -type d -exec chmod 755 {} \;
             chmod -R 777 storage bootstrap/cache
+            
+            # Restart services if needed
+            sudo systemctl restart php8.2-fpm
+            sudo systemctl restart nginx
