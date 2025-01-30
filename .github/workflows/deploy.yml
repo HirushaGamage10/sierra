@@ -46,7 +46,7 @@ jobs:
           script: |
             cd /root/project/sierra/MadProject
             git pull origin main
-            #composer install --no-interaction --prefer-dist --optimize-autoloader --ignore-platform-reqs
+            # composer install --no-interaction --prefer-dist --optimize-autoloader --ignore-platform-reqs
             
             # Clear all caches
             php artisan optimize:clear
